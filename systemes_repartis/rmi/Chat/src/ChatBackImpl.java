@@ -1,7 +1,9 @@
-public class ChatBackImpl implements ChatBack {
-    public ServantChat(){}
+import java.rmi.RemoteException;
 
-    void send(String src, String msg) throws RemoteException {
+public class ChatBackImpl implements ChatBack {
+    public ChatBackImpl(){}
+
+    public void send(String src, String msg) throws RemoteException {
 	System.out.println(src + ": " + msg);
     }
 }

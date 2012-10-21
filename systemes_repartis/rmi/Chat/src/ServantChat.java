@@ -1,4 +1,7 @@
 import java.util.HashMap;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+
 
 public class ServantChat implements Chat {
     
@@ -11,7 +14,7 @@ public class ServantChat implements Chat {
 
 
     // Begin Interface Chat
-    void connect(String nick, ChatBack ref) throws RemoteException {
+    public void connect(String nick, ChatBack ref) throws RemoteException {
 	if (map.get(nick) == null){
 	    map.put(nick,ref);
 	} 
@@ -20,17 +23,23 @@ public class ServantChat implements Chat {
 	}
     }
     
-    //void disconnect(String nick) throws RemoteException; 
-    //ArrayList<String> list() throws RemoteException; 
-    //void send(String src, String msg) throws RemoteException; 
+    public void disconnect(String nick) throws RemoteException {
+    } 
     
-    void send(String src, String dst, String msg) throws RemoteException {
+    public ArrayList<String> list() throws RemoteException {
+	return null;
+    } 
+    
+    public void send(String src, String msg) throws RemoteException {
+    } 
+    
+    public void send(String src, String dst, String msg) throws RemoteException {
 	ChatBack ref = map.get(dst);
 	if (ref != null) {
 	    try {
 		ref.send(src,msg);
 		// System.out.println
-	    } catch () {
+	    } catch (RemoteException e) {
 		// TODO ERREUR
 	    }
 	}

@@ -1,8 +1,6 @@
-public static class Tools {
+public class Tools {
 
-    public static string GetChatUrl(string serverHost, string serverPort) {
+    public static String GetChatUrl(String serverHost, String serverPort) {
 	return "rmi://" + serverHost + ":" + serverPort + "/" + Constantes.CHAT_NAME; 
     }
-
-
 }

@@ -2,8 +2,8 @@ import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
-public static class ServerChat extends UnicastRemoteObject {
-    public HelloServer() throws RemoteException {
+public class ServerChat extends UnicastRemoteObject {
+    public ServerChat() throws RemoteException {
 	super();
     }
     
@@ -19,7 +19,7 @@ public static class ServerChat extends UnicastRemoteObject {
 	    // Bind this object to the local RMI registry
 	    String host = args[0];
 	    String port = args[1];
-	    String url = GetChatUrl(host, port); 
+	    String url = Tools.GetChatUrl(host, port); 
 	    Naming.rebind(url, servant);
 	    
         } catch (Exception e) { 
