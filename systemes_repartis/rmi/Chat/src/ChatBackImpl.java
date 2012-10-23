@@ -6,6 +6,6 @@ public class ChatBackImpl extends UnicastRemoteObject implements Serializable, C
     public ChatBackImpl() throws RemoteException {}
 
     public void send(String src, String msg) throws RemoteException {
-	System.out.println(src + " 2: " + msg);
+	System.out.println("\"" + src + "\" : " + msg);
     }
 }

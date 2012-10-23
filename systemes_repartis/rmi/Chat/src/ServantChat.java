@@ -8,21 +8,23 @@ public class ServantChat extends UnicastRemoteObject implements Chat, Serializab
     
     public ServantChat() throws RemoteException {
 	this._map = new HashMap<String,ChatBack>();
-	//this.IsAlive = true;
+	_myName = Constantes.SERVER_NAME;
     }
 
     private HashMap<String,ChatBack> _map;
-    //private boolean IsAlive = false;
-
+    private String _myName;
+    
+    
     // Begin Interface Chat
     public void connect(String nick, ChatBack ref) throws RemoteException {
 	System.out.println("connect : " + nick);
 	if (_map.get(nick) == null){
 	    _map.put(nick,ref);
+	    ref.send(_myName, "You are now connected.");
 	} 
 	else {
-	    // se deco ?
-	    // TODO ERREUR
+	    ref.send(_myName, "The pseudonym \"" + nick + "\" is already used by an other user");
+	    /* TODO ERREUR */
 	}
     }
     
@@ -31,48 +33,51 @@ public class ServantChat extends UnicastRemoteObject implements Chat, Serializab
 	if ( _map.get(nick) != null){
 	    _map.remove(nick);
 	} 
-	else {
-	    // TODO ERREUR
-	}
+	else { /* TODO ERREUR */ }
     } 
     
     public ArrayList<String> list() throws RemoteException {
-	System.out.println("give list");
+	// This print is comment because the server use it all seconde
+	// System.out.println("give list");
 	ArrayList<String> result = new ArrayList<String>();
 	for (String user : _map.keySet()){
 	    result.add(user);
-	}	
+	}
 	return result;
     } 
     
     public void send(String src, String msg) throws RemoteException {
-	System.out.println("send : " + msg + " from " + src);
+	System.out.println("<" + src + " to All> : " + msg);
 	ChatBack chatUser;
 	for (String user : _map.keySet()){
 	    if (!user.equals(src)) {
 		chatUser = _map.get(user);
 		try {
-		chatUser.send(src, msg);
+		    chatUser.send(src, msg);
 		} catch (RemoteException e) {
-		    // TODO ERREUR
+		    e.printStackTrace();
 		}
 	    }
 	}	
     } 
     
     public void send(String src, String dst, String msg) throws RemoteException {
-	System.out.println("send : " + msg + " from " + src + " to " + dst);
+	System.out.println("<" + src + " to " + dst  + "> : " + msg);
 	
 	ChatBack ref = _map.get(dst);
 	if (ref != null) {
 	    try {
 		ref.send(src,msg);
 	    } catch (RemoteException e) {
-		// TODO ERREUR
+		e.printStackTrace();
 	    }
 	}
 	else {
-	    // TODO ERREUR
+	    ref = _map.get(src);
+	    if (ref != null){
+		ref.send(_myName, "User \"" + dst + "\" do not exist.\n Try /list to view users list.");
+	    }
+	    else { /* TODO ERREUR */ }
 	}
     }
     // End Interface Chat
