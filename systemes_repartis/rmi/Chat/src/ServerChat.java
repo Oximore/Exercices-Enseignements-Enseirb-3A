@@ -28,24 +28,9 @@ public class ServerChat {
 	    String url = Tools.GetChatUrl(host, port); 
 	    Naming.rebind(url, servant);
 	    
-	    try {
-		// Wait an user connection 
-		// and quit where all users are deconnected
-		boolean haveAnUser = false;
-		boolean hadAnUser = false;
-		
-		ArrayList userList;
-		while (haveAnUser || !hadAnUser) {
-		    userList = servant.list();
-		    hadAnUser = hadAnUser || haveAnUser;
-		    haveAnUser = (userList.size() > 0);
-		    Thread.sleep(1000);
-		}
-	    }
-	    finally {
-		UnicastRemoteObject.unexportObject(servant,true);
-	    }
-	    
+	    // To realse server : 
+	    // UnicastRemoteObject.unexportObject(servant,true);
+	    	    
         } catch (Exception e) { 
 	    System.out.println("HelloServer Exception: " + e.getMessage()); 
 	    e.printStackTrace(); 

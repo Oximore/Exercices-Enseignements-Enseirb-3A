@@ -19,8 +19,9 @@ public class ServantChat extends UnicastRemoteObject implements Chat, Serializab
     public void connect(String nick, ChatBack ref) throws RemoteException {
 	System.out.println("connect : " + nick);
 	if (_map.get(nick) == null){
+	    send(_myName,"User " + nick + " is online");
 	    _map.put(nick,ref);
-	    ref.send(_myName, "You are now connected.");
+	    ref.send(_myName, "You are now connected as " + nick + ".");
 	} 
 	else {
 	    ref.send(_myName, "The pseudonym \"" + nick + "\" is already used by an other user");
@@ -32,13 +33,13 @@ public class ServantChat extends UnicastRemoteObject implements Chat, Serializab
 	System.out.println("disconnect : " + nick);
 	if ( _map.get(nick) != null){
 	    _map.remove(nick);
+	    send(_myName,"User " + nick + " is offline");
 	} 
 	else { /* TODO ERREUR */ }
     } 
     
     public ArrayList<String> list() throws RemoteException {
-	// This print is comment because the server use it all seconde
-	// System.out.println("give list");
+	System.out.println("ask list");
 	ArrayList<String> result = new ArrayList<String>();
 	for (String user : _map.keySet()){
 	    result.add(user);

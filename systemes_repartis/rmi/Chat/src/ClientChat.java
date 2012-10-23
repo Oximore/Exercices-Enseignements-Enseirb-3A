@@ -74,6 +74,7 @@ public class ClientChat {
 	    System.out.println("ClientChat Exception: " + e.getMessage()); 
 	    e.printStackTrace(); 
 	}
+	System.exit(0);
     }
 
     private static void Help(){
