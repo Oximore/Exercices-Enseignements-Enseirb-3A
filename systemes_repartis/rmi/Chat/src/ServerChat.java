@@ -15,13 +15,18 @@ public class ServerChat extends UnicastRemoteObject {
 	
 	try { 
 	    Chat servant = (Chat) new ServantChat();
-	    
+	    //servant ServantChat();
+	    	    
 	    // Bind this object to the local RMI registry
 	    String host = args[0];
 	    String port = args[1];
 	    String url = Tools.GetChatUrl(host, port); 
 	    System.out.println(url);
-	    Naming.rebind(url, servant);
+	    Naming.rebind(url, servant); // bind ?
+	    
+	    while (true /*servant.IsAlive*/) {
+		Thread.sleep(1000);
+	    }
 	    
         } catch (Exception e) { 
 	    System.out.println("HelloServer Exception: " + e.getMessage()); 

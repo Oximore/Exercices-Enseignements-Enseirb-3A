@@ -1,5 +1,5 @@
 import java.rmi.Naming;
-//import java.rmi.server.UnicastRemoteObject;
+import java.rmi.server.UnicastRemoteObject;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
@@ -27,6 +27,9 @@ public class ClientChat {
 	    String myPort = args[iArg++];
 	    String serverHost = args[iArg++];
 	    String serverPort = args[iArg++];
+	    
+	    
+	    //	    Chat _chatServer = null;
 	    
 	    // Look up for the Remote Object Chat from Server RMI registry 
 	    String chatUrl = Tools.GetChatUrl(serverHost, serverPort);
@@ -71,7 +74,7 @@ public class ClientChat {
 
     // TODO : Finir ces fonctions ...
 
-    private  static void Notify(String msg) throws RemoteException {
+    private static void Notify(String msg) throws RemoteException {
 	String cmd[] = msg.split(" ");
 	String user = cmd[1]; 
 	String message = "";
@@ -98,6 +101,8 @@ public class ClientChat {
 	    Disconnect();	    
 	}
 	
+	_nick = msg.trim().split(" ")[1];
+
 	// Créer un objet ChatBackImpl
 	ChatBackImpl _myChatBackImpl = new ChatBackImpl();
 	
@@ -109,7 +114,7 @@ public class ClientChat {
 	
     private static void Disconnect() throws RemoteException {
 	_chatServer.disconnect(_nick);
-	//unexportObject(_myChatBackImpl, true); // A Check !  
+	UnicastRemoteObject.unexportObject(_myChatBackImpl,true);
 	_nick = Constantes.DEFAULT_USER_NAME;
     }
     
