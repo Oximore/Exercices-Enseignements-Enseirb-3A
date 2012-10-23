@@ -10,6 +10,7 @@ public class ClientChat {
 
     private static String _nick = "";
     private static Chat _chatServer = null;
+    private static ChatBackImpl _myChatBackImpl = null;
 
     public static void main(String args[]) { 
 	if (args.length != 4) {
@@ -98,16 +99,17 @@ public class ClientChat {
 	}
 	
 	// Créer un objet ChatBackImpl
-	ChatBackImpl myChatBack = new ChatBackImpl();
+	ChatBackImpl _myChatBackImpl = new ChatBackImpl();
 	
 	// String myChatBackUrl = /* TODO */ ; // GetChatUrl(host,port);
 	// Naming.rebind(myChatBackUrl, myChatBack);
 	
-	_chatServer.connect(_nick, myChatBack);
+	_chatServer.connect(_nick, _myChatBackImpl);
     }
 	
     private static void Disconnect() throws RemoteException {
 	_chatServer.disconnect(_nick);
+	//unexportObject(_myChatBackImpl, true); // A Check !  
 	_nick = Constantes.DEFAULT_USER_NAME;
     }
     

@@ -1,9 +1,10 @@
 import java.util.HashMap;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.io.Serializable;
 
 
-public class ServantChat implements Chat {
+public class ServantChat implements Chat, Serializable  {
     
     public ServantChat(){
 	this._map = new HashMap<String,ChatBack>();
@@ -16,8 +17,10 @@ public class ServantChat implements Chat {
     public void connect(String nick, ChatBack ref) throws RemoteException {
 	if (_map.get(nick) == null){
 	    _map.put(nick,ref);
+	    // System.out.println("New pseudo : " + nick);
 	} 
 	else {
+	    // se deco ?
 	    // TODO ERREUR
 	}
     }
