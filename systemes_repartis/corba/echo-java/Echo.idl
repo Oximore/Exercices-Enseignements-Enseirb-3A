@@ -1,0 +1,8 @@
+// Echo.idl
+
+interface Echo 
+{
+  any echoAny(in any x);
+  //string echoString(in string mesg);
+  //long echoLong(in long l);
+};
