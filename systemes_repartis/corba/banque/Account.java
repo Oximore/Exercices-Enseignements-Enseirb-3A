@@ -8,26 +8,24 @@ import org.omg.CORBA.*;
 //on appelle B.move(B',A) qui renvoie un compte A'
 //on programme move() en utilisant seulement les fonctions déjà disponibles
 
-public class Account
-{
-  private int solde;
-  public String nom;
+public class Account extend AccountOPA {
+
+    public int Id;
+    private int _solde;
   
-  public Account (nom){
-  	solde=0;
-  	this.nom=nom;
-  }
-  public void deposit (int amount){
-  	solde+=amount;
-  }
-  
-  
-  public void withdraw (int amount){
-  	solde-=amount;
-  }
-  
-  
-  public int balance (){
+    public Account (int id){
+  	this.Id = id;
+	solde = 0;
+    }
+    public void deposit (int amount){
+  	solde += amount;
+    }
+   
+    public void withdraw (int amount){
+  	solde -= amount;
+    }
+    
+    public int balance (){
   	return solde;
-  }
+    }
 } 

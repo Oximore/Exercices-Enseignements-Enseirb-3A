@@ -1,6 +1,13 @@
 
+import org.omg.CosNaming.*;
+import org.omg.CosNaming.NamingContextPackage.*;
+import org.omg.CORBA.*;
+import org.omg.PortableServer.*;
+import org.omg.PortableServer.POA;
+import java.util.Properties;
+
 // server program
-public class EchoServer {
+public class BankServer {
     
     public static void main(String args[]) {
 
@@ -20,16 +27,16 @@ public class EchoServer {
 	    NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
 	    
 	    // get object reference from the servant
-	    EchoImpl echoImpl = new EchoImpl();
-	    objRef = rootpoa.servant_to_reference(echoImpl);
-	    
+	    Bank bank = new Bank();
+	    objRef = rootpoa.servant_to_reference(bank);
+
 	    // bind the object reference in the naming service
-	    String name = "echo.echo"; // id.kind
-	    NameComponent path[] = ncRef.to_name(name);
+	    String name = "bank.bank1"; // id.kind
+	    NameComponent path[] = ncRef.to_name("bank.bank1");
 	    ncRef.rebind(path, objRef);
 	    
 	    // wait for invocations from clients
-	    System.out.println("EchoServer ready and waiting...");
+	    System.out.println("BankServer ready and waiting...");
 	    orb.run(); // blocking...
 	} 
 	

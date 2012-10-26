@@ -5,7 +5,9 @@
   };
 
   interface Bank {
-    Account create ();
+    //String Name;
+    Account create(out long id);
     void destroy(in Account a);
+    Account lookup(in long id);
     Account move(in Bank target, in Account a);
-  };
+  };						
