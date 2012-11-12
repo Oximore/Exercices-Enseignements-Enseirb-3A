@@ -27,7 +27,7 @@ public class BankServer {
 	    NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
 	    
 	    // get object reference from the servant
-	    Bank bank = new Bank();
+	    Bank bank = (Bank) new BankImpl(); // truc poa
 	    objRef = rootpoa.servant_to_reference(bank);
 
 	    // bind the object reference in the naming service

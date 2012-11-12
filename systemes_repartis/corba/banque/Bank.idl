@@ -1,13 +1,13 @@
- interface Account {
-    void deposit(in unsigned long amount );
-    void withdraw(in unsigned long amount );
-    long balance();
-  };
+interface Account {
+  void deposit(in unsigned long amount );
+  void withdraw(in unsigned long amount );
+  long balance();
+  long getId();
+};
 
-  interface Bank {
-    //String Name;
-    Account create(out long id);
-    void destroy(in Account a);
-    Account lookup(in long id);
-    Account move(in Bank target, in Account a);
-  };						
+interface Bank {
+  Account create (out long id);
+  void destroy(in Account a);
+  Account move(in Bank target, in Account a);
+  Account lookup(in long id);
+};
