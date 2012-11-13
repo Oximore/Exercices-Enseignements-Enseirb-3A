@@ -7,7 +7,7 @@
 */
 
 public abstract class BankPOA extends org.omg.PortableServer.Servant
- implements BankOperations, org.omg.CORBA.portable.InvokeHandler
+    implements BankOperations, org.omg.CORBA.portable.InvokeHandler
 {
 
   // Constructors

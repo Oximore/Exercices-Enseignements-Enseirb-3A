@@ -1,4 +1,3 @@
-
 import org.omg.CosNaming.*;
 import org.omg.CosNaming.NamingContextPackage.*;
 import org.omg.CORBA.*;
@@ -14,9 +13,16 @@ public class BankServer {
 	org.omg.CORBA.Object objRef;
 
 	try{
+	    // Argument filter
+	    String bankName = args[0];
 	    
 	    // create and initialize the ORB
-	    ORB orb = ORB.init(args, null);
+	    String orbArgs[] = new String [args.length-1];
+	    for (int i = 0 ; i<orbArgs.length ; ++i){
+		orbArgs[i] = args[i+1];		
+	    }
+
+	    ORB orb = ORB.init(orbArgs, null);
 	    
 	    // get reference to rootpoa & activate the POAManager
 	    POA rootpoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
@@ -27,12 +33,12 @@ public class BankServer {
 	    NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
 	    
 	    // get object reference from the servant
-	    Bank bank = (Bank) new BankImpl(); // truc poa
+	    BankImpl bank = new BankImpl(rootpoa, ncRef, bankName);
 	    objRef = rootpoa.servant_to_reference(bank);
 
 	    // bind the object reference in the naming service
-	    String name = "bank.bank1"; // id.kind
-	    NameComponent path[] = ncRef.to_name("bank.bank1");
+	    String name = "bank." + bankName;
+	    NameComponent path[] = ncRef.to_name(name);
 	    ncRef.rebind(path, objRef);
 	    
 	    // wait for invocations from clients

@@ -8,7 +8,7 @@ import org.omg.CORBA.*;
 //on appelle B.move(B',A) qui renvoie un compte A'
 //on programme move() en utilisant seulement les fonctions déjà disponibles
 
-public class AccountImpl extends AccountPOA {
+public class AccountImpl extends AccountPOA{
 
     public int Id;
     private int _solde;
