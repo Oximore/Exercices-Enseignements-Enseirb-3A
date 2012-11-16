@@ -36,7 +36,7 @@ __kernel void matrix_mull(__global float * a, __global float * b, __global float
  
   int off_glob_a = y*n + x_loc;
   int off_glob_b = y_loc*n + x;
-  int diff_off = n*32;
+  //int diff_off = n*32;
   
   int max = n/32;
   int k, l;
@@ -58,8 +58,8 @@ __kernel void matrix_mull(__global float * a, __global float * b, __global float
     barrier(CLK_LOCAL_MEM_FENCE);
 
     // calcul des offset suivant
-    off_glob_a += diff_off;
-    off_glob_b += diff_off;
+    off_glob_a += 32;
+    off_glob_b += n*32;
   }
 
   c[y*n + x] = res;
