@@ -333,7 +333,7 @@ int main (int argc, char* argv[]) {
      
       
       // Communicate
-      for (i=0 ; i<4 ; i++) {
+      for (i=0 ; i<2 ; i++) {
 	if (sendRequests[(nb_tour+1)%2][i] != NULL)
 	  MPI_Start(&sendRequests[(nb_tour+1)%2][i]);
 	if (recvRequests[(nb_tour+1)%2][i] != NULL)
@@ -346,7 +346,7 @@ int main (int argc, char* argv[]) {
       //MPI_Waitall(4,recvRequests[(nb_tour+1)%2],statusRequests);
       
       
-      for (i=0;i<4;i++){
+      for (i=0;i<2;i++){
 	if(sendRequests[(nb_tour+1)%2][i] != NULL)	
 	  MPI_Wait(&sendRequests[(nb_tour+1)%2][i], statusRequests);	
 	if(recvRequests[(nb_tour+1)%2][i] != NULL)	
