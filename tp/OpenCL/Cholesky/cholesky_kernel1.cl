@@ -26,28 +26,34 @@ __kernel void cholesky_diag(__global MATRIX_TYPE * a, int indice) {
     A_loc[my_local_indice] = a[my_global_indice];
     
     // compute
+    
     for ( i=0 ; i<n_loc ; ++i) {
-      if (x==i && y==i) {
+      if (x_loc==i && y_loc==i) {
 	A_loc[my_local_indice] = sqrt(A_loc[my_local_indice]);
       }
       barrier(CLK_LOCAL_MEM_FENCE);
       
-      if (x==i && i < y) {
+      if (x_loc==i && i < y_loc) {
 	A_loc[my_local_indice] = A_loc[my_local_indice]/A_loc[i + i*n_loc];
       }
       barrier(CLK_LOCAL_MEM_FENCE);
       
       for ( j=i+1 ; j<n ; ++j) {
 	// for ( k=i+1 ; k<=j ; ++k) {
-	if (y==j &&  i<x  && x<=j) {
-	  A_loc[my_local_indice] = A_loc[my_local_indice] - A_loc[i + x*n_loc]*A_loc[i + j*n_loc];
+	if (y_loc==j &&  i<x_loc  && x_loc<=j) {
+	  A_loc[my_local_indice] = A_loc[my_local_indice] - A_loc[i + x_loc*n_loc]*A_loc[i + j*n_loc];
 	}
 	barrier(CLK_LOCAL_MEM_FENCE);
       }
     }
-    
+    //*/
+
     // ecriture du résultat
     a[my_global_indice] = A_loc[my_local_indice];    
+    
+
+    //    if (indice==1)
+    // a[my_global_indice]=my_local_indice;
   }
 }
 

@@ -73,9 +73,9 @@ int main(int argc, char* argv[]) {
   bool verbose = false;
   CreateKernel(&ker1, ctx, devs, nb_devs, "./cholesky_kernel1.cl", "cholesky_diag", verbose);
   CreateKernel(&ker2, ctx, devs, nb_devs, "./cholesky_kernel2.cl", "cholesky_inf", verbose);
-  //CreateKernel(&ker2, ctx, devs, nb_devs, g"./cholesky_kernel3.cl", "cholesky_subdiag", verbose);
+  CreateKernel(&ker3, ctx, devs, nb_devs, "./cholesky_kernel3.cl", "cholesky_subdiag", verbose);
 
-  int nombre_de_kernel = 2;
+  int nombre_de_kernel = 3;
   cl_event ev_ker[nombre_de_kernel];
 
   // Création des buffers
@@ -91,29 +91,32 @@ int main(int argc, char* argv[]) {
   // GPU Calcul
 
   int i;
-  for (i=0 ; i<1/*matrix_size/LOCAL_DIM_KERNEL*/ ; i++) {
-    printf("kernel1:%d",i);    // Kernel 1
+  printf("MON FUC*** INDICE : %d\n",matrix_size/LOCAL_DIM_KERNEL);
+  for (i=0 ; i<matrix_size/LOCAL_DIM_KERNEL/**/ ; i++) {
+    // Kernel 1
     clSetKernelArg(ker1, 0, sizeof(bufA), &bufA);
     clSetKernelArg(ker1, 1, sizeof(i), &i);
     clEnqueueNDRangeKernel(command_queue, ker1, 2, NULL, globalDim, localDim, 1, &ev_ker[nombre_de_kernel-1], &ev_ker[0]);
     
-    printf("kernel2:%d",i);    // Kernel 2 
-    clSetKernelArg(ker2, 0, sizeof(bufA), &bufA);
-    clSetKernelArg(ker2, 1, sizeof(i), &i);
-    clEnqueueNDRangeKernel(command_queue, ker2, 2, NULL, globalDim, localDim, 1, &ev_ker[0], &ev_ker[1]);
+    if (nombre_de_kernel>1) {
+      // Kernel 2 
+      clSetKernelArg(ker2, 0, sizeof(bufA), &bufA);
+      clSetKernelArg(ker2, 1, sizeof(i), &i);
+      clEnqueueNDRangeKernel(command_queue, ker2, 2, NULL, globalDim, localDim, 1, &ev_ker[0], &ev_ker[1]);
+    }
 
-
-    // Kernel 3
-    
-    printf("\n");
+    if (nombre_de_kernel>2){
+      // Kernel 3
+      clSetKernelArg(ker3, 0, sizeof(bufA), &bufA);
+      clSetKernelArg(ker3, 1, sizeof(i), &i);
+      clEnqueueNDRangeKernel(command_queue, ker3, 2, NULL, globalDim, localDim, 1, &ev_ker[1], &ev_ker[2]);
+    }
   }
 
-
-
+  clFinish(command_queue);
     
-  clEnqueueReadBuffer(command_queue, bufA, CL_TRUE, 0, cl_buff_size, matB, nombre_de_kernel, ev_ker, &ev_readA);
-  printf("fin kernel\n");
-
+  clEnqueueReadBuffer(command_queue, bufA, CL_TRUE, 0, cl_buff_size, matB, 1, &ev_ker[nombre_de_kernel-1], &ev_readA);
+  
   clFinish(command_queue);
 
   // clGetEvenProfilingInfo
@@ -127,7 +130,8 @@ int main(int argc, char* argv[]) {
   //  ClearUpMatrix(matB,matrix_size);
   printf("\nMatrix B:\n");
   DisplayMatrix(matB,matrix_size);
-  /*
+  /**/
+  ClearUpMatrix(matB,matrix_size);
   TransposeMatrix(matB,matC,matrix_size);
   MullMatrix(matB,matC,matD,matrix_size);
   MinusMatrix(matD,matA,matrix_size);
@@ -240,8 +244,8 @@ void CreateKernel(cl_kernel* kernel, cl_context ctx,   cl_device_id* devs, cl_ui
   if (verbose)
     printf("Code kernel: %s\n", source);
 
-  char buildOption[512] = "-I ";
-  char* current_directory = get_current_dir_name();
+  char buildOption[1024] = "-I ";
+  char* current_directory = getcwd(NULL,0);
   strcat(buildOption,current_directory);
   strcat(buildOption,"/");
   free(current_directory);
@@ -259,11 +263,11 @@ void CreateKernel(cl_kernel* kernel, cl_context ctx,   cl_device_id* devs, cl_ui
   clGetProgramBuildInfo(prg, devs[0], CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
  
   //  if (verbose)
-  printf("Build log: %s\n", log);
+  printf("Build \"%s\" log: %s\n",file_name, log);
 
   // Compilation du kernel
   *kernel = clCreateKernel(prg, function_name, &cl_error);
-  CHECK_ERROR(cl_error,"clCreateBuffer");
-
+  CHECK_ERROR(cl_error,"clCreateKernel");
+  
   
 }

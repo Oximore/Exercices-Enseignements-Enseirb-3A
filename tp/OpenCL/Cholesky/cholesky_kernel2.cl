@@ -7,7 +7,7 @@ __kernel void cholesky_inf(__global MATRIX_TYPE * a, int indice) {
   
   int x_loc = get_local_id(0);
   int y_loc = get_local_id(1);
-  int n_loc = get_local_id(0);
+  int n_loc = get_local_size(0);
 
 
   // Si je suis le kernel de l'étape indice
@@ -28,22 +28,21 @@ __kernel void cholesky_inf(__global MATRIX_TYPE * a, int indice) {
     A_loc[my_local_indice]    = a[my_global_indice];
     Diag_loc[my_local_indice] = a[diag_global_indice];
     
-    //*
+
     // compute
     for (i=0 ; i<n_loc ; i++){
       barrier(CLK_LOCAL_MEM_FENCE);
-      if (x==i) {
-	A_loc[my_local_indice] = A_loc[my_local_indice] / Diag_loc[i + i*n];
+      // Divise la colone en cours
+      if (x_loc==i) { 
+	A_loc[my_local_indice] = A_loc[my_local_indice] / Diag_loc[i + i*n_loc];
       }
       barrier(CLK_LOCAL_MEM_FENCE);
-      if (x>i && y>=x){
+      // On met à jour le reste
+      if (x_loc>i/* && y>=x*/){
 	A_loc[my_local_indice] = A_loc[my_local_indice] - Diag_loc[i + x_loc*n_loc]*A_loc[i + y_loc*n_loc];
       }
     }
-    //*/
-
-    //    a[my_global_indice] = A_loc[my_local_indice]; 
-    a[my_global_indice] = Diag_loc[my_local_indice]; 
-  
+    
+    a[my_global_indice] = A_loc[my_local_indice]; 
   }
 }
