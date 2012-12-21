@@ -4,56 +4,32 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "cholesky_monokernel.h"
 #include <sys/time.h>
 #include <time.h>
 
+#include "cholesky_monokernel.h"
+#include "util.h"
 
 int main(int argc, char* argv[]) {
-  
-  /* int valeur_max = 2; */
-  /* if (argc > 1) */
-  /*   valeur_max = atoi(argv[1]);  */
-
-  //  unsigned int i,j;
   cl_int cl_error;
+  cl_event ev_writeA, ev_ker, ev_readA;   
   
-  /* struct timeval tv; */
-  /* double time_start; */
-  /* double time_end; */
-  /* srand(time(NULL)); */
-   
   unsigned int matrix_size = MATRIX_SIZE;
   unsigned int matrix_total_size = matrix_size*matrix_size;
   size_t cl_buff_size = matrix_total_size * sizeof(MATRIX_TYPE);
-  
   printf("Matrix size : %d (%d length)\n",matrix_size,matrix_total_size);
-  
-  
-  // Allouer des buffer non contigues ?
-  cl_event ev_writeA, ev_ker, ev_readA;
-  
-  
+    
   MATRIX_TYPE * matA = malloc(matrix_total_size * sizeof(*matA));
   MATRIX_TYPE * matB = malloc(matrix_total_size * sizeof(*matB));
   MATRIX_TYPE * matC = malloc(matrix_total_size * sizeof(*matC));
   MATRIX_TYPE * matD = malloc(matrix_total_size * sizeof(*matD));
     
-  /* gettimeofday(&tv, NULL); */
-  /* time_start=tv.tv_sec+(tv.tv_usec/1000000.0); */
-
   // Init matA
   InitMatrix2(matA, matrix_size);
-  //  InitMatrix(matB, matrix_size);
-  
-  /* gettimeofday(&tv, NULL); */
-  /* time_end=tv.tv_sec+(tv.tv_usec/1000000.0); */
-  /* printf("%.6lf seconds elapsed for Generate matrix\n", time_end-time_start) */;  
-  
+    
   printf("Matrix A:\n");
   DisplayMatrix(matA,matrix_size);
-  
-  
+    
   // Init GPU
   cl_uint nb_platf;
   clGetPlatformIDs(0, NULL, &nb_platf);
@@ -103,7 +79,7 @@ int main(int argc, char* argv[]) {
     printf("Code kernel: %s\n", source);
 
   char buildOption[512] = "-I ";
-  char* current_directory = get_current_dir_name();
+  char* current_directory = getcwd(NULL,0);
   strcat(buildOption,current_directory);
   strcat(buildOption,"/");
   free(current_directory);
@@ -146,13 +122,8 @@ int main(int argc, char* argv[]) {
 
   clFinish(command_queue);
 
-
-
-
   // clGetEvenProfilingInfo
-  
   //  clReleaseMemObject(bufA);
-
 
   /********************/
   /*** CHECK RESULT ***/   
@@ -177,9 +148,6 @@ int main(int argc, char* argv[]) {
   //  printf("\nMatrix A:\n");
   //DisplayMatrix(matA,matrix_size);
   //*/
-  //  Compute with CPU
-
-  // Compare Matrix
 
   free(matA);
   free(matB);
@@ -189,81 +157,3 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-
-void DisplayMatrix(MATRIX_TYPE* mat, unsigned int size){
-  unsigned int i,j;
-  for (j=0 ; j<size ; j++){
-    for (i=0 ; i<size ; i++){
-      printf("%lf|"/*(%d|%d)\t"*/,mat[i+j*size]/*,i,j*/);
-    }
-    printf("\n");
-  }
-}
-
-
-void InitMatrix(MATRIX_TYPE * matA, unsigned int matrix_size) {
-  unsigned int i;
-  for (i=0 ; i<matrix_size*matrix_size ; i++){
-    matA[i] = i+1;
-  }
-}
-
-void InitMatrix2(MATRIX_TYPE * matA, unsigned int matrix_size) {
-  int i=0;
-  matA[i++]=1;
-  matA[i++]=1;
-  matA[i++]=1;
-  matA[i++]=1;
-  matA[i++]=1;
-  matA[i++]=5;
-  matA[i++]=5;
-  matA[i++]=5;
-  matA[i++]=1;
-  matA[i++]=5;
-  matA[i++]=14;
-  matA[i++]=14;
-  matA[i++]=1;
-  matA[i++]=5;
-  matA[i++]=14;
-  matA[i++]=15;
-}
-
-void ClearUpMatrix(MATRIX_TYPE * a, unsigned int size) {
-  unsigned int i,j;
-   for (j=0 ; j<size ; j++){
-     for (i=0 ; i<size ; i++){
-       if (i>j)
-	 a[i+j*size] = 0;
-     }
-  }
-}
-
- void TransposeMatrix(MATRIX_TYPE * a, MATRIX_TYPE * b, unsigned int size) {
-  unsigned int i,j;
-   for (j=0 ; j<size ; j++){
-    for (i=0 ; i<size ; i++){
-      b[i+j*size] = a[j + i*size];
-    }
-  }
-}
-
-void MullMatrix(MATRIX_TYPE * a, MATRIX_TYPE * b, MATRIX_TYPE * c, unsigned int size) {
-  unsigned int i,j,k;
-  for (j=0 ; j<size ; j++){
-    for (i=0 ; i<size ; i++){
-      c[i+j*size]=0;
-      for (k=0 ; k<size ; k++) {
-	c[i+j*size] += a[k + j*size]*b[i + k*size];
-      }
-    }
-  }
-} 
-
-void MinusMatrix(MATRIX_TYPE * a, MATRIX_TYPE * b, unsigned int size){
-  unsigned int i,j;
-  for (j=0 ; j<size ; j++){
-    for (i=0 ; i<size ; i++){
-      a[i+j*size] -= b[i+j*size];
-    }
-  }
-}

@@ -3,16 +3,22 @@
 #include <CL/cl.h>
 #include <string.h>
 #include <unistd.h>
-
-#include "cholesky_monokernel.h"
 #include <sys/time.h>
 #include <time.h>
 
+#include "cholesky.h"
+#include "util.h"
+
+/*** Prototypes ***/
+void CreateKernel(cl_kernel* kernel, cl_context ctx,   cl_device_id* devs, cl_uint nb_devs, const char* file_name, const char* function_name,bool verbose);
+
+
+/*** Functions ***/
 
 int main(int argc, char* argv[]) {
-  
   cl_int cl_error;
-   
+
+  /** Init **/
   unsigned int matrix_size = MATRIX_SIZE;
   unsigned int matrix_total_size = matrix_size*matrix_size;
   size_t cl_buff_size = matrix_total_size * sizeof(MATRIX_TYPE);
@@ -36,7 +42,7 @@ int main(int argc, char* argv[]) {
   cl_uint nb_platf;
   clGetPlatformIDs(0, NULL, &nb_platf);
   
-  printf("Nombre de plateformes: %d\n", nb_platf);
+  printf("Nombre de plateformes: %d\t", nb_platf);
   
   cl_platform_id platfs[nb_platf];
   clGetPlatformIDs(nb_platf, platfs, NULL);
@@ -45,13 +51,13 @@ int main(int argc, char* argv[]) {
   clGetPlatformInfo(platfs[0], CL_PLATFORM_NAME, 0, NULL, &plat_name_size);
   char plat_name[plat_name_size];
   clGetPlatformInfo(platfs[0], CL_PLATFORM_NAME, plat_name_size, &plat_name, NULL);
-  printf("Nom de la plateforme: %s\n", plat_name);
+  printf("( %s ", plat_name);
 
   size_t plat_vendor_size;
   clGetPlatformInfo(platfs[0], CL_PLATFORM_VENDOR, 0, NULL, &plat_vendor_size);
   char plat_vendor[plat_vendor_size];
   clGetPlatformInfo(platfs[0], CL_PLATFORM_VENDOR, plat_vendor_size, &plat_vendor, NULL);
-  printf("Nom de la plateforme: %s\n", plat_vendor);
+  printf("| %s)\n", plat_vendor);
 
   cl_uint nb_devs;
   clGetDeviceIDs(platfs[0], CL_DEVICE_TYPE_ALL, 0, NULL, &nb_devs);
@@ -64,21 +70,18 @@ int main(int argc, char* argv[]) {
   cl_command_queue command_queue = clCreateCommandQueue(ctx, devs[0], CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_PROFILING_ENABLE, NULL);
 
 
-  /*** Chargement du kernel cholesky_monokernel ***/
-  
-  // Allouer des buffer non contigues ?
-  cl_event ev_readA;
-  
+  /** Chargement des kernels **/
   cl_kernel ker1, ker2, ker3;
+
   bool verbose = false;
   CreateKernel(&ker1, ctx, devs, nb_devs, "./cholesky_kernel1.cl", "cholesky_diag", verbose);
   CreateKernel(&ker2, ctx, devs, nb_devs, "./cholesky_kernel2.cl", "cholesky_inf", verbose);
   CreateKernel(&ker3, ctx, devs, nb_devs, "./cholesky_kernel3.cl", "cholesky_subdiag", verbose);
 
   int nombre_de_kernel = 3;
-  cl_event ev_ker[nombre_de_kernel];
+  cl_event ev_ker[nombre_de_kernel], ev_readA;
 
-  // Création des buffers
+  // Création/Préparation du buffer GPU
   cl_mem bufA = clCreateBuffer(ctx, CL_MEM_READ_WRITE, cl_buff_size, NULL, &cl_error);
   CHECK_ERROR(cl_error,"clCreateBuffer");
 
@@ -88,40 +91,33 @@ int main(int argc, char* argv[]) {
   size_t globalDim[] = {matrix_size, matrix_size};
   size_t localDim[] = {LOCAL_DIM_KERNEL, LOCAL_DIM_KERNEL};
    
-  // GPU Calcul
 
+  // GPU Calculs
   int i;
-  printf("MON FUC*** INDICE : %d\n",matrix_size/LOCAL_DIM_KERNEL);
   for (i=0 ; i<matrix_size/LOCAL_DIM_KERNEL/**/ ; i++) {
-    // Kernel 1
+    // Kernel 1 : Bloc diagonal
     clSetKernelArg(ker1, 0, sizeof(bufA), &bufA);
     clSetKernelArg(ker1, 1, sizeof(i), &i);
     clEnqueueNDRangeKernel(command_queue, ker1, 2, NULL, globalDim, localDim, 1, &ev_ker[nombre_de_kernel-1], &ev_ker[0]);
     
-    if (nombre_de_kernel>1) {
-      // Kernel 2 
-      clSetKernelArg(ker2, 0, sizeof(bufA), &bufA);
-      clSetKernelArg(ker2, 1, sizeof(i), &i);
-      clEnqueueNDRangeKernel(command_queue, ker2, 2, NULL, globalDim, localDim, 1, &ev_ker[0], &ev_ker[1]);
-    }
-
-    if (nombre_de_kernel>2){
-      // Kernel 3
-      clSetKernelArg(ker3, 0, sizeof(bufA), &bufA);
-      clSetKernelArg(ker3, 1, sizeof(i), &i);
-      clEnqueueNDRangeKernel(command_queue, ker3, 2, NULL, globalDim, localDim, 1, &ev_ker[1], &ev_ker[2]);
-    }
-  }
-
-  clFinish(command_queue);
+    // Kernel 2 : Blocs sous-diagonaux inferieur 
+    clSetKernelArg(ker2, 0, sizeof(bufA), &bufA);
+    clSetKernelArg(ker2, 1, sizeof(i), &i);
+    clEnqueueNDRangeKernel(command_queue, ker2, 2, NULL, globalDim, localDim, 1, &ev_ker[0], &ev_ker[1]);
     
+
+    // Kernel 3 : Blocs sous-diagonaux
+    clSetKernelArg(ker3, 0, sizeof(bufA), &bufA);
+    clSetKernelArg(ker3, 1, sizeof(i), &i);
+    clEnqueueNDRangeKernel(command_queue, ker3, 2, NULL, globalDim, localDim, 1, &ev_ker[1], &ev_ker[2]);
+  }
+      
   clEnqueueReadBuffer(command_queue, bufA, CL_TRUE, 0, cl_buff_size, matB, 1, &ev_ker[nombre_de_kernel-1], &ev_readA);
   
   clFinish(command_queue);
 
   // clGetEvenProfilingInfo
-  
-  //  clReleaseMemObject(bufA);
+  clReleaseMemObject(bufA);
 
 
   /********************/
@@ -149,85 +145,6 @@ int main(int argc, char* argv[]) {
 }
 
 
-void DisplayMatrix(MATRIX_TYPE* mat, unsigned int size){
-  unsigned int i,j;
-  for (j=0 ; j<size ; j++){
-    for (i=0 ; i<size ; i++){
-      printf("%lf|"/*(%d|%d)\t"*/,mat[i+j*size]/*,i,j*/);
-    }
-    printf("\n");
-  }
-}
-
-
-void InitMatrix(MATRIX_TYPE * matA, unsigned int matrix_size) {
-  unsigned int i;
-  for (i=0 ; i<matrix_size*matrix_size ; i++){
-    matA[i] = i+1;
-  }
-}
-
-void InitMatrix2(MATRIX_TYPE * matA, unsigned int matrix_size) {
-  int i=0;
-  matA[i++]=1;
-  matA[i++]=1;
-  matA[i++]=1;
-  matA[i++]=1;
-  matA[i++]=1;
-  matA[i++]=5;
-  matA[i++]=5;
-  matA[i++]=5;
-  matA[i++]=1;
-  matA[i++]=5;
-  matA[i++]=14;
-  matA[i++]=14;
-  matA[i++]=1;
-  matA[i++]=5;
-  matA[i++]=14;
-  matA[i++]=15;
-}
-
-void ClearUpMatrix(MATRIX_TYPE * a, unsigned int size) {
-  unsigned int i,j;
-   for (j=0 ; j<size ; j++){
-     for (i=0 ; i<size ; i++){
-       if (i>j)
-	 a[i+j*size] = 0;
-     }
-  }
-}
-
- void TransposeMatrix(MATRIX_TYPE * a, MATRIX_TYPE * b, unsigned int size) {
-  unsigned int i,j;
-   for (j=0 ; j<size ; j++){
-    for (i=0 ; i<size ; i++){
-      b[i+j*size] = a[j + i*size];
-    }
-  }
-}
-
-void MullMatrix(MATRIX_TYPE * a, MATRIX_TYPE * b, MATRIX_TYPE * c, unsigned int size) {
-  unsigned int i,j,k;
-  for (j=0 ; j<size ; j++){
-    for (i=0 ; i<size ; i++){
-      c[i+j*size]=0;
-      for (k=0 ; k<size ; k++) {
-	c[i+j*size] += a[k + j*size]*b[i + k*size];
-      }
-    }
-  }
-} 
-
-void MinusMatrix(MATRIX_TYPE * a, MATRIX_TYPE * b, unsigned int size){
-  unsigned int i,j;
-  for (j=0 ; j<size ; j++){
-    for (i=0 ; i<size ; i++){
-      a[i+j*size] -= b[i+j*size];
-    }
-  }
-}
-
-  
 void CreateKernel(cl_kernel* kernel, cl_context ctx,   cl_device_id* devs, cl_uint nb_devs, const char* file_name, const char* function_name,bool verbose) {
   cl_int cl_error;
   
@@ -249,10 +166,10 @@ void CreateKernel(cl_kernel* kernel, cl_context ctx,   cl_device_id* devs, cl_ui
   strcat(buildOption,current_directory);
   strcat(buildOption,"/");
   free(current_directory);
-  
+
   if (verbose)
     printf("BUILD OPTION : %s\n\n",buildOption);
-  
+
   cl_program prg = clCreateProgramWithSource(ctx, 1, (const char**)&source, NULL, NULL);
   clBuildProgram(prg, nb_devs, devs, buildOption, NULL, NULL);
 
@@ -261,13 +178,11 @@ void CreateKernel(cl_kernel* kernel, cl_context ctx,   cl_device_id* devs, cl_ui
   clGetProgramBuildInfo(prg, devs[0], CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
   char log[log_size];
   clGetProgramBuildInfo(prg, devs[0], CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
- 
+
   //  if (verbose)
   printf("Build \"%s\" log: %s\n",file_name, log);
 
   // Compilation du kernel
   *kernel = clCreateKernel(prg, function_name, &cl_error);
   CHECK_ERROR(cl_error,"clCreateKernel");
-  
-  
 }
