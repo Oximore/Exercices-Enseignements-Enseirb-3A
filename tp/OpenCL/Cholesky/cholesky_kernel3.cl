@@ -1,6 +1,7 @@
+
 #define MATRIX_SIZE 16
 
-__kernel void cholesky_inf_right(__global float * a) {
+__kernel void cholesky_subdiag(__global float * a) {
   int x = get_global_id(0);
   int y = get_global_id(1);
   int n = get_global_size(0);

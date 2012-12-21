@@ -91,6 +91,8 @@ int main(int argc, char* argv[]) {
   clEnqueueWriteBuffer(cq, bufA, 0, 0, size, matA, 0, NULL, &ev_writeA);
 
   clSetKernelArg(kerTest, 0, sizeof(bufA), &bufA);
+  int value = 4;
+  clSetKernelArg(kerTest, 1, sizeof(value), &value);
 
   size_t globalDim[] = {N, N};
   size_t localDim[] = {8, 8};

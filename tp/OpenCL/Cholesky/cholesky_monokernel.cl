@@ -1,46 +1,61 @@
+#include "cholesky.h"
 
-#define MATRIX_SIZE 16
 
-__kernel void cholesky_mid(__global float * a) {
+__kernel void cholesky_monokernel(__global MATRIX_TYPE * a) {
   int x = get_global_id(0);
   int y = get_global_id(1);
   int n = get_global_size(0);
   
   int x_loc = get_local_id(0);
   int y_loc = get_local_id(1);
-    
-  int matrix_size = MATRIX_SIZE;
+  int n_loc = get_local_size(0);
+  
   // réservation de mémoire locale
-  __local float A_loc[matrix_size*matrix_size];
+  __local float A_loc[LOCAL_DIM_KERNEL*LOCAL_DIM_KERNEL];
     
   // copy local
-  int i,j,k, my_local_indice;
+  int i,j, my_local_indice, my_global_indice;
+  MATRIX_TYPE aii, aik, aij;
   
-  my_local_indice = x_loc + matrix_size*y_loc;
-  A_loc[my_local_indice] = a[x + n*y];
+  my_local_indice = x_loc + n_loc*y_loc;
+  my_global_indice = x + n*y;
+  
+  //a[my_global_indice] = sqrt(a[my_global_indice]);
+  
+  A_loc[my_local_indice] = a[my_global_indice];
   
   // compute
-  for ( i=0 ; i<matrix_size ; ++i) {
-    if (x_loc==i && y_loc==i)
+  for ( i=0 ; i<n ; ++i) {
+    if (x==i && y==i) {
       A_loc[my_local_indice] = sqrt(A_loc[my_local_indice]);
+      a[my_global_indice] = A_loc[my_local_indice];
+    }
     barrier(CLK_LOCAL_MEM_FENCE);
     
-    if (x_loc==i && i < y_loc) {
-      A_loc[my_local_indice] = A_loc[my_local_indice]/A_loc[i + i*matrix_size];
+    if (x==i && i < y) {
+      aii = a[i + i*n];
+      A_loc[my_local_indice] = A_loc[my_local_indice]/aii;
+      a[my_global_indice] = A_loc[my_local_indice];
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    for ( j=i+1 ; j<matrix_size ; ++j) {
+    for ( j=i+1 ; j<n ; ++j) {
       // for ( k=i+1 ; k<=j ; ++k) {
-      if (y_loc==j &&  i<x_loc  && x_loc<=j) {
-	A_loc[my_local_indice] = A_loc[my_local_indice] - A_loc[i + x_loc*matrix_size]*A_loc[i + j*matrix_size];
+      if (y==j &&  i<x  && x<=j) {
+	aik = a[i + x*n];
+	aij = a[i + j*n];
+	A_loc[my_local_indice] = A_loc[my_local_indice] - aik*aij;
       }
+      a[my_global_indice] = A_loc[my_local_indice];
+      barrier(CLK_LOCAL_MEM_FENCE);
     }
     
-    barrier(CLK_LOCAL_MEM_FENCE);
+    //barrier(CLK_LOCAL_MEM_FENCE);
   }
   
   // ecriture du résultat
-  a[x + n*y] =  A_loc[my_local_indice];
+  a[my_global_indice] = A_loc[my_local_indice];
+  //a[x + n*y] =  A_loc[my_local_indice];
+  //*/
 }
 

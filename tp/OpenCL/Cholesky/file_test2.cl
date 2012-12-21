@@ -1,6 +1,6 @@
 #include "test.h"
 
-__kernel void test(__global float * a) {
+__kernel void test(__global float * a, int value) {
   int x = get_global_id(0);
   int y = get_global_id(1);
   int n = get_global_size(0);
@@ -21,7 +21,7 @@ __kernel void test(__global float * a) {
   //A_loc[my_local_indice] = a[x + n*y];
 
   //A_loc[my_local_indice] = my_local_indice;
-  A_loc[my_local_indice] = VALEUR_MAGIQUE;
+  A_loc[my_local_indice] = value;
   
 
   a[x + n*y] = A_loc[my_local_indice];
