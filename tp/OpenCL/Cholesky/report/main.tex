@@ -1,0 +1,215 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Short Sectioned Assignment
+% LaTeX Template
+% Version 1.0 (5/5/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Frits Wenneker (http://www.howtotex.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage[utf8]{inputenc}
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+
+\usepackage{listings}
+  \usepackage{courier}
+ \lstset{
+         basicstyle=\footnotesize\ttfamily, % Standardschrift
+         %numbers=left,               % Ort der Zeilennummern
+         numberstyle=\tiny,          % Stil der Zeilennummern
+         %stepnumber=2,               % Abstand zwischen den Zeilennummern
+         numbersep=5pt,              % Abstand der Nummern zum Text
+         tabsize=2,                  % Groesse von Tabs
+         extendedchars=true,         %
+         breaklines=true,            % Zeilen werden Umgebrochen
+         keywordstyle=\color{red},
+    		frame=b,         
+ %        keywordstyle=[1]\textbf,    % Stil der Keywords
+ %        keywordstyle=[2]\textbf,    %
+ %        keywordstyle=[3]\textbf,    %
+ %        keywordstyle=[4]\textbf,   \sqrt{\sqrt{}} %
+         stringstyle=\color{white}\ttfamily, % Farbe der String
+         showspaces=false,           % Leerzeichen anzeigen ?
+         showtabs=false,             % Tabs anzeigen ?
+         xleftmargin=17pt,
+         framexleftmargin=17pt,
+         framexrightmargin=5pt,
+         framexbottommargin=4pt,
+         %backgroundcolor=\color{lightgray},
+         showstringspaces=false      % Leerzeichen in Strings anzeigen ?        
+ }
+ \lstloadlanguages{% Check Dokumentation for further languages ...
+         %[Visual]Basic
+         %Pascal
+         %C
+         %C++
+         %XML
+         %HTML
+         Java
+ }
+    %\DeclareCaptionFont{blue}{\color{blue}} 
+
+  %\captionsetup[lstlisting]{singlelinecheck=false, labelfont={blue}, textfont={blue}}
+  \usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox[cmyk]{0.43, 0.35, 0.35,0.01}{\parbox{\textwidth}{\hspace{15pt}#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white, singlelinecheck=false, margin=0pt, font={bf,footnotesize}}
+
+
+\usepackage{sectsty} % Allows customizing section commands
+\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
+
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+
+\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+
+\title{	
+\normalfont \normalsize 
+\textsc{ENSEIRB-MATMECA} \\ [25pt] % Your university, school and/or department name(s)
+\horrule{0.5pt} \\[0.4cm] % Thin top horizontal rule
+\huge N-Bodies : Attraction gravitationnelle. \\ % The assignment title
+\horrule{2pt} \\[0.5cm] % Thick bottom horizontal rule
+}
+
+\author{Caneill Pierre-Yves, Lux Benjamin} % Your name
+
+\date{\normalsize\today} % Today's date or a custom date
+
+\begin{document}
+
+\maketitle % Print the title
+
+%----------------------------------------------------------------------------------------
+%	Version 1
+%----------------------------------------------------------------------------------------
+
+\section{Programme MPI pour la simulation d'unn problème à n corps}
+
+
+
+\subsection{Principe Gloabal}
+% equations / principe phisique / simulation discontinue (=discrete)
+% pas assez de mem sur un seul processus
+
+\subsection{Utilisation des type MPI}
+
+\subsection{Anneau de communication}
+% on communique avec chacun des autres processus tour par tour / double buffering
+A chaque itération, on doit connaitre les positions et les masses des
+corps des autres processus afin de calculer la somme des intéractions
+sur les corps présent dans le notre.
+
+Pour cela on créer une boucle de communication. Après avoir fait la
+somme partielle des forces intèrne au processus on obtient du
+processus précédent ses données et on donne les notres au processus
+suivant. Une fois la somme partielle complétée, on revoie ces données
+au processus suivant et on en récupère des nouvelles, ainsi dessuite.
+
+Au premier tour, le processus $0$ reçoit donc les données de $p-1$, au
+tour deux les données de $p-2$.
+
+
+
+\subsection{Recouvrement calcul communication}
+% Communications non-bloquantes 
+Pour ne pas perdre de temps avec l'attentes de communications, qui
+sont globalement plus longues que les étapes de calcul, on essaie
+toujours avoir des communications de cours.
+
+Pour celà on utlise des communications non-bloquantes. Cependant cette
+optimisation est la plus part du temps supérflue. En effet mpi va
+généralement lancer ces communications lors de l'appel à
+$MPI\_Wait$. Cependant il peut exister des architecture ou mpi va
+réellement effectuer ces communications en asynchrone.
+
+
+\subsection{Factorisation des communications}
+% Utilisation de MPI_Send_init / MPI_Recv_init
+Puisque l'on envoie nos donnée toujours au même processus, le suivant,
+et on ne les reçoit que du précédent, on peut optimiser le code. On
+utilise des les fonctions $MPI\_Send\_init$ et $MPI\_Recv\_init$ pour
+factoriser ses étapes et préparer à l'avance nos requettes, de type
+$MPI\_Request$.\\ On utlise $MPI\_Start$ pour démarrer une requette
+ainsi créée. On effectue ensuite nos calculs et enfin on attends la
+fin des communications grace à $MPI\_Wait$, pour pouvoir passer à
+l'itération suivante.
+
+
+\subsection{Choix du dt}
+% Pour pallier à la non continuitée (?)/  ????
+
+\subsection{Optimisation supplémentaire}
+% envisageable ? 
+% on calcul toute les forces en double car Fab = -Fba 
+% mais si on les calcul qu'une fois, les communications seront elles inférieures au cout de calcul ?
+
+
+\subsection{Affichage graphique}
+% python / un screen-shot ?
+
+\subsection{Perfomances}
+
+
+\section{Exécuter le programme}
+
+\subsection{Version 1}
+\begin{lstlisting}[caption={Exécution de la v1}]
+  Mode release : 
+     make
+  Mode debug :
+     make DEBUG=yes
+
+  ./deploy.sh
+  ./master n+1 sizeinterval password    (avec n le nombre de slave)
+
+\end{lstlisting}
+
+
+\section{Conclusion}
+
+La version 1 marche correctement et les résultats mesurés
+correspondent aux attentes. Bien que la version 2 s'éxécute
+correctement sur nos machines, nous n'arrivons pas à la lancer sur
+latifundio. Nous n'avons pas réussis à débuguer cette dernière version
+dans le temps imparti. Peut être que des tests plus réguliers de
+notre code sur latifundio nous aurait permis de trouver le problème
+dès son apparition. 
+
+\end{document}

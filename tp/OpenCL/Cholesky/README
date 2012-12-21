@@ -1,9 +1,0 @@
-Sujet:
-www.sylvain-henry.info/home/data/uploads/teaching/shenry-tp-gpgpu-1.0.pdf
-
-
-source set_env.sh
-make [cholesky | cholesky_monokernel]
-./cholesky
-
-
