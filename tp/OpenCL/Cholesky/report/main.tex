@@ -407,7 +407,27 @@ tests ont étés effectuer sans gpu.
 \section{Questions}
 
 \subsection{Question 2}
+
+\paragraph{1/} Code du fichier \textit{cholesky\_monokernel.cl}.\\
+
+\paragraph{2/} On copie la matrice dans un buffer local pour optimiser les lectures et écriture multiple du calcul.
+
+\paragraph{3/} En découpant la matrice par bloc on peut déjà découper en différent work groupes, ce qui rajoute du parallèlisme.
+
+\paragraph{4/} Code des fichiers \textit{cholesky\_kernel1.cl}, \textit{cholesky\_kernel2.cl} et \textit{cholesky\_kernel3.cl}, correspondant à la partie "Algorithme par bloc".
+
+\paragraph{5/} Ce reporter aux chapitres "Principe de base de l'implémentation" et "Algorithme par bloc".
+
+\paragraph{6/} 
+
+
 \subsection{Question 3}
+
+\paragraph{1/} Les résultats obtenus sur les matrices de Hilbert sont assez alarmant. On récuppère très vite des valeurs $nan$, car on divise par des racines de petits éléments float.
+
+\paragraph{2/} L'ensemble des calculs et test ne ce sont fait qu'avec un seul CPU.
+
+\paragraph{3/} 
 
 
 
