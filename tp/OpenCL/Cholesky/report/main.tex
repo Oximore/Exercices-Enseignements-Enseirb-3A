@@ -283,7 +283,12 @@ Pour i de à n                         (1)
 FIN
 \end{verbatim}
 
-\subsection{Principe de base}
+Cet algorithme ne modifie que la partie triangulaire inférieur de la
+matrice, on doit ensuite mettre à nulle les valeurs de la partie
+triangulaire supérieur pour obtenir la matrice $L$.
+
+
+\subsection{Principe de base de l'implémentation}
 Les deux versions ont un corps commun.  On commence par allouer un
 vecteur de $float$ en mémoire qui représentera la matrice $A$. On
 l'initialise de sort à avoir un matrice respectant les conditions
@@ -298,7 +303,7 @@ obtenue avec sa transposé. Cette matrice devrai être identique à la
 matrice de départ et donc leur différence être nulle.
 
 
-\subsection{Algorithme de base}
+\subsection{Algorithme mono-kernel}
 La première version implémentée de cette factorisation en
 \textit{OpenCL} reprend basiquement l'algorithme précédent.Elle se
 compose d'un seul kernel. Chacun thread du kernel représente un
@@ -361,7 +366,7 @@ ici les blocs $B_{(k,j)}$ avec $k\in[|i+1;n|]$ et $j\in[|k;n|]$. Pour
 mettre à jour ce bloc les threads ont besoin de copier en local deux
 blocs supplémentaires, $B_{i,k}$ et $B_{i,j}$. On se rend compte que
 l'opération correspond à faire : $B_{k,j}\ =\ B_{k,j}\ -\ B_{i,k}
-\times B_{i,j}^T$. Cette opération peut être implémentée comme :
+\times B_{i,j}^T$. Cette opération est implémentée comme il suit :
 $$B_{k,j}[x,y]\ =\ B_{k,j}[x,y]\ - \sum_{l=1}^{wg\_size}(B_{i,k}[l,y]
 \times B_{i,j}[l,x])$$
 
@@ -370,11 +375,34 @@ $$B_{k,j}[x,y]\ =\ B_{k,j}[x,y]\ - \sum_{l=1}^{wg\_size}(B_{i,k}[l,y]
 
 
 \subsection{Résultats (Tests)}
-puuut putputputput
+Les deux versions d'abord ont été testées sur la même matrice
+d'entrée, avec des tailles de work groupe variables pour la version
+par bloc. Les toutes les éxécutions, ainsi que l'exécution de
+l'algorithme de base à la main, on donné le même résultat.
+
+\begin{centering}
+Matrice d'entrée : $A\ =\ \left( \begin{array}{cccc}
+1&1&1&1 \\
+1&5&5&5 \\
+1&5&14&14 \\
+1&5&14&15 \\
+\end{array} \right) $
+Matrice de sortie : $L\ =\ \left( \begin{array}{cccc}
+1&0&0&0 \\
+1&2&0&0 \\
+1&2&3&0 \\
+1&2&3&1 \\
+\end{array} \right) $
+\end{centering}
+
+Ici les valeurs supérieurs de L ont étés mise à zéros pour la
+lisibilité. On récupère les valeurs de $A$ lorsque l'on recopie
+seulement le buffer mémoire OpenCL que l'on a donné au(x) kernel(s).
 
 
 \subsection{Performance}
-No GPU, No perf.
+Une analyse des performances n'est pas vraiment révélatrice car ces
+tests ont étés effectuer sans gpu. 
 
 \section{Questions}
 
