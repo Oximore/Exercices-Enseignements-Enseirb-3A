@@ -119,8 +119,42 @@
 %----------------------------------------------------------------------------------------
 %	Version 1
 %----------------------------------------------------------------------------------------
+\section{Présentation du problème}
 
-\section{}
+
+\section{Version Séquentielle}
+La premier version est séquentielle.
+Celle si implémente simplement l'algorithme proposé.
+La matrice est allouée dans un
+
+
+\section{Version MPI}
+Une seule implémentation parallèle en \textit{MPI} a été
+faite. Celle-ci utilise divereses optimisation afin de gagner du
+temps. Nous allons maintenant les détailler.
+
+\subsection{Principe général, découpage par bloc}
+Le déroulement du programme se fait en 4 grandes étapes.
+\begin{itemize}
+\item Le premier processeur analyse les arguments et diffuse les
+  données aux autres processus (taille de la matrice, epsilonne, type
+  de découpage, ...).
+\item Les processus initialisent leurs données (décision de travail ou
+  pas, allocation de leur part de la matrice, ...).
+\item Les processus qui travaillent calculent leurs itérations, puis
+  communiquent leurs frontières. 
+\item les processus comparent leur résultats avec la solution
+  "exacte".
+\end{itemize}
+
+
+\subsection{Communications persistantes et non bloquantes}
+% illusion quand tu nous tiens
+
+\subsection{Calcul de l'itération en deux temps}
+
+
+\section{Conclusion}
 
 
 
