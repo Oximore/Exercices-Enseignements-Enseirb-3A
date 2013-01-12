@@ -21,7 +21,7 @@
 #define DEBUG(a)          printf("rank:%d, %s\n",myrank ,a)
 #define NULLTEST(a)       (a==NULL) ? "*":"!"
 #define CHECKSTATUS(s) 	  //if (s != MPI_SUCCESS) printf("rank%d : ERROR WITH STATUS\n",grid_rank)
-
+#define INIT_VALUE 1.0
 
 /*** Prototypes ***/
 void printMatrice(double** u, int n, int w, int h);
@@ -180,10 +180,26 @@ int main (int argc, char* argv[]) {
     u_double[0] = malloc(sizeof(**u_double)*weight_local*height_local); // free ?
     u_double[1] = malloc(sizeof(**u_double)*weight_local*height_local); // free ?
     
+
     for ( i=0 ; i<weight_local*height_local ; i++) {
+      u_double[0][i] = INIT_VALUE;
+      u_double[1][i] = INIT_VALUE;
+    }
+    for ( i=0 ; i<weight_local ; i++) {
       u_double[0][i] = 0.0;
       u_double[1][i] = 0.0;
+
+      u_double[0][(height_local-1)*weight_local+i] = 0.0;
+      u_double[1][(height_local-1)*weight_local+i] = 0.0;
     }
+    for ( i=0 ; i<height_local ; i++) {
+      u_double[0][i*weight_local] = 0.0;
+      u_double[1][i*weight_local] = 0.0;
+
+      u_double[0][(i+1)*weight_local-1] = 0.0;
+      u_double[1][(i+1)*weight_local-1] = 0.0;
+    }
+
  
     //printf("myrank:%d || my_row:%d || grid_rank:%d || my_coords:%d;%d || sixe:w:%d/h:%d \n", myrank, my_row, grid_rank, my_coords[0], my_coords[1], weight_local, height_local);
 
@@ -310,7 +326,18 @@ int main (int argc, char* argv[]) {
     u = u_double[0];
     v = u_double[1];
 
-    //int MatrixAPrint = -1; /* TODO a suppr */
+    int MatrixAPrint = -1; /* TODO a suppr */
+    
+    // Debug Print matrix
+    MPI_Barrier(grid_2D);
+    if (grid_rank==MatrixAPrint){
+      printMatrice(u_double, 0, weight_local, height_local);
+      printf("\n");
+      printMatrice(u_double, 1, weight_local, height_local);
+      printf("\n");
+    }
+    MPI_Barrier(grid_2D);
+    //*/
     
     while (!stop) {
       //printf("%d: round %d\n", grid_rank, nb_tour);
@@ -395,10 +422,12 @@ int main (int argc, char* argv[]) {
       //printf("*** tour:%d || grid_rank:%d || norme:%lf || stop=%d?\n",nb_tour,grid_rank,norme,stop);
       MPI_Allreduce(&stop,&stop_tmp,1,MPI_INT,MPI_LAND,grid_2D);
       stop = stop_tmp;
-      
+
+      /*
       if (!grid_rank) {
 	printf("Tour:%d, finish with norme = %lf (rank=%d)\n", nb_tour, norme, grid_rank);
       }
+      //*/
       
       /*     
       // Debug Print matrix
@@ -414,6 +443,18 @@ int main (int argc, char* argv[]) {
 
       nb_tour++;
       } /* end while(!stop) */
+
+    
+    // Debug Print matrix
+    MPI_Barrier(grid_2D);
+    if (grid_rank==MatrixAPrint){
+      printMatrice(u_double, 0, weight_local, height_local);
+      printf("\n");
+      printMatrice(u_double, 1, weight_local, height_local);
+      printf("\n");
+    }
+    MPI_Barrier(grid_2D);
+    //*/
 
     //DEBUG("I have finish my work");
 
@@ -435,7 +476,7 @@ int main (int argc, char* argv[]) {
     MPI_Allreduce(&tmpDiff,&finalDiff,1,MPI_DOUBLE,MPI_MAX,grid_2D);
     
     if (grid_rank==0) {
-      printf("Final Diff : %lf\n",finalDiff);
+      printf("Final Diff : %lf (%d itérations)\n",finalDiff, nb_tour);
     }
     
 
